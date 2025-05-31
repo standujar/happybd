@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages with Secret Injection
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Inject Vault Key from Secret
+        env:
+          VAULT_WIF_KEY: ${{ secrets.VAULT_WIF_KEY }}
+        run: |
+          echo "🔐 Injecting vault key into vault.js..."
+          
+          # Vérifier que le secret existe
+          if [ -z "$VAULT_WIF_KEY" ]; then
+            echo "❌ VAULT_WIF_KEY secret is not set!"
+            echo "Go to: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "Add a secret named: VAULT_WIF_KEY"
+            echo "With your WIF private key as value"
+            exit 1
+          fi
+          
+          # Remplacer le placeholder par la vraie clé
+          sed -i "s/__VAULT_WIF_KEY_PLACEHOLDER__/$VAULT_WIF_KEY/g" vault.js
+          
+          # Vérifier que le remplacement a fonctionné
+          if grep -q "__VAULT_WIF_KEY_PLACEHOLDER__" vault.js; then
+            echo "❌ Placeholder replacement failed!"
+            exit 1
+          fi
+          
+          echo "✅ Vault key successfully injected"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 
