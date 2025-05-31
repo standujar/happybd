@@ -1050,8 +1050,8 @@ function showClaimedMessage() {
                     font-size: 18px;
                     line-height: 1.5;
                 ">
-                    Tu as déjà récupéré ton cadeau AI16Z Kenny. <br>
-                    Chaque wallet ne peut récupérer qu'un seul cadeau.
+                    Tu as déjà récupéré ton cadeau. <br>
+                    Attends l'année prochaine.
                 </p>
                 <div style="
                     background: #fed7aa;
@@ -1065,7 +1065,7 @@ function showClaimedMessage() {
                         font-size: 14px;
                         font-weight: 500;
                     ">
-                        💡 Si tu penses qu'il s'agit d'une erreur, contacte le support.
+                        💡 Si tu penses qu'il s'agit d'une erreur, contacte Gigachad.
                     </p>
                 </div>
             </div>
