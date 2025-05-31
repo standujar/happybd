@@ -16,14 +16,14 @@ const CONFIG = {
         // Si vous avez Alchemy, décommentez cette ligne et mettez votre URL
         // "VOTRE_URL_ALCHEMY_ICI",
         
-        // Endpoints publics (peuvent être limités)
-        "https://api.devnet.solana.com", // Devnet gratuit
-        "https://api.testnet.solana.com", // Testnet gratuit
-        "https://api.mainnet-beta.solana.com", // Mainnet mais limité
+        // Endpoints mainnet en priorité (AI16Z est sur mainnet)
+        "https://api.mainnet-beta.solana.com", // Mainnet principal
+        "https://rpc.ankr.com/solana", // Mainnet alternatif
+        "https://solana-mainnet.rpc.extrnode.com", // Mainnet alternatif
         
-        // Autres endpoints publics
-        "https://rpc.ankr.com/solana",
-        "https://solana-mainnet.rpc.extrnode.com",
+        // Endpoints de test (uniquement pour debug)
+        // "https://api.devnet.solana.com", // Devnet (commenté car AI16Z pas disponible)
+        // "https://api.testnet.solana.com", // Testnet (commenté car AI16Z pas disponible)
     ],
     clusterUrl: "https://explorer.solana.com"
 };
