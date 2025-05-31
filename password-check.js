@@ -1,8 +1,8 @@
 // Configuration - SEULE le hash du password est ici
 const CONFIG = {
-    // Hash SHA-256 du password "kenny" pour l'exemple
-    // Tu peux générer un hash avec: echo -n "kenny" | sha256sum
-    passwordHash: "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72", // "kenny"
+    // Hash SHA-256 du password "use_k3nny"
+    // Tu peux générer un hash avec: echo -n "use_k3nny" | sha256sum
+    passwordHash: "aa4bde2922e6c66d81f6b89379917273485cdd92290ad07d9e70e36477cdd112", // "use_k3nny"
     secureFolder: "secure/"
 };
 
