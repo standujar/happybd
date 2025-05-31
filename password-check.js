@@ -1,5 +1,5 @@
 // Configuration - SEULE le hash du password est ici
-const CONFIG = {
+const PASSWORD_CONFIG = {
     // Hash SHA-256 du password "use_k3nny"
     // Tu peux générer un hash avec: echo -n "use_k3nny" | sha256sum
     passwordHash: "aa4bde2922e6c66d81f6b89379917273485cdd92290ad07d9e70e36477cdd112", // "use_k3nny"
@@ -52,7 +52,7 @@ async function checkPassword() {
         const inputHash = await hashPassword(password);
         
         // Vérification
-        if (inputHash === CONFIG.passwordHash) {
+        if (inputHash === PASSWORD_CONFIG.passwordHash) {
             console.log('✅ Password correct, loading secure content...');
             
             btnText.textContent = 'Chargement...';
@@ -212,65 +212,63 @@ async function createSecureInterface() {
 async function loadSecureScripts() {
     return new Promise((resolve, reject) => {
         let scriptsLoaded = 0;
-        const totalScripts = 4; // solana, base58, spl-token, vault, script
+        const totalScripts = 3; // solana, vault, script (base58 et spl-token sont inline)
         
         function onScriptLoad() {
             scriptsLoaded++;
+            console.log(`Script ${scriptsLoaded}/${totalScripts} chargé`);
             if (scriptsLoaded === totalScripts) {
                 resolve();
             }
         }
         
-        // 1. Charger Solana Web3
+        // 1. Charger Solana Web3 en premier
         const solanaScript = document.createElement('script');
         solanaScript.src = 'https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js';
-        solanaScript.onload = onScriptLoad;
-        solanaScript.onerror = () => reject(new Error('Failed to load Solana Web3.js'));
-        document.head.appendChild(solanaScript);
-        
-        // 2. Charger Base58 (inline)
-        const base58Script = document.createElement('script');
-        base58Script.textContent = `
-            const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-            window.bs58 = {
-                decode: function(str) {
-                    const bytes = [];
-                    for (let i = 0; i < str.length; i++) {
-                        const char = str[i];
-                        const charIndex = BASE58_ALPHABET.indexOf(char);
-                        if (charIndex === -1) {
-                            throw new Error(\`Invalid character in base58: \${char}\`);
+        solanaScript.onload = () => {
+            console.log('✅ Solana Web3.js chargé');
+            
+            // 2. Ajouter Base58 implementation
+            const base58Script = document.createElement('script');
+            base58Script.textContent = `
+                const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+                window.bs58 = {
+                    decode: function(str) {
+                        const bytes = [];
+                        for (let i = 0; i < str.length; i++) {
+                            const char = str[i];
+                            const charIndex = BASE58_ALPHABET.indexOf(char);
+                            if (charIndex === -1) {
+                                throw new Error('Invalid character in base58: ' + char);
+                            }
+                            
+                            let carry = charIndex;
+                            for (let j = 0; j < bytes.length; j++) {
+                                carry += bytes[j] * 58;
+                                bytes[j] = carry & 0xff;
+                                carry >>= 8;
+                            }
+                            
+                            while (carry) {
+                                bytes.push(carry & 0xff);
+                                carry >>= 8;
+                            }
                         }
                         
-                        let carry = charIndex;
-                        for (let j = 0; j < bytes.length; j++) {
-                            carry += bytes[j] * 58;
-                            bytes[j] = carry & 0xff;
-                            carry >>= 8;
+                        for (let i = 0; i < str.length && str[i] === '1'; i++) {
+                            bytes.push(0);
                         }
                         
-                        while (carry) {
-                            bytes.push(carry & 0xff);
-                            carry >>= 8;
-                        }
+                        return new Uint8Array(bytes.reverse());
                     }
-                    
-                    for (let i = 0; i < str.length && str[i] === '1'; i++) {
-                        bytes.push(0);
-                    }
-                    
-                    return new Uint8Array(bytes.reverse());
-                }
-            };
-            console.log('✅ Base58 decoder loaded');
-        `;
-        document.head.appendChild(base58Script);
-        onScriptLoad();
-        
-        // 3. SPL Token implementation (inline)
-        const splTokenScript = document.createElement('script');
-        splTokenScript.textContent = `
-            setTimeout(() => {
+                };
+                console.log('✅ Base58 decoder loaded');
+            `;
+            document.head.appendChild(base58Script);
+            
+            // 3. Ajouter SPL Token implementation (maintenant que solanaWeb3 est disponible)
+            const splTokenScript = document.createElement('script');
+            splTokenScript.textContent = `
                 const TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
                 const ASSOCIATED_TOKEN_PROGRAM_ID = new solanaWeb3.PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
                 
@@ -324,22 +322,31 @@ async function loadSecureScripts() {
                     }
                 };
                 console.log('✅ Manual SPL Token implementation ready!');
-            }, 100);
-        `;
-        document.head.appendChild(splTokenScript);
-        onScriptLoad();
+            `;
+            document.head.appendChild(splTokenScript);
+            
+            onScriptLoad(); // Compter solana comme chargé
+        };
+        solanaScript.onerror = () => reject(new Error('Failed to load Solana Web3.js'));
+        document.head.appendChild(solanaScript);
         
         // 4. Charger vault.js
         const vaultScript = document.createElement('script');
-        vaultScript.src = CONFIG.secureFolder + 'vault.js';
-        vaultScript.onload = onScriptLoad;
+        vaultScript.src = PASSWORD_CONFIG.secureFolder + 'vault.js';
+        vaultScript.onload = () => {
+            console.log('✅ Vault.js chargé');
+            onScriptLoad();
+        };
         vaultScript.onerror = () => reject(new Error('Failed to load vault.js'));
         document.head.appendChild(vaultScript);
         
         // 5. Charger script.js
         const mainScript = document.createElement('script');
-        mainScript.src = CONFIG.secureFolder + 'script.js';
-        mainScript.onload = onScriptLoad;
+        mainScript.src = PASSWORD_CONFIG.secureFolder + 'script.js';
+        mainScript.onload = () => {
+            console.log('✅ Script.js chargé');
+            onScriptLoad();
+        };
         mainScript.onerror = () => reject(new Error('Failed to load script.js'));
         document.head.appendChild(mainScript);
     });
