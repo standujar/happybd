@@ -29,8 +29,8 @@ class VaultConfig {
         }
         
         try {
-            // Décoder la clé WIF en utilisant notre implémentation Base58
-            const secretKey = base58Decode(wifKey);
+            // Décoder la clé WIF en utilisant l'implémentation Base58 globale
+            const secretKey = window.bs58.decode(wifKey);
             const keypair = solanaWeb3.Keypair.fromSecretKey(secretKey);
             
             console.log('🔑 Vault keypair loaded successfully');
