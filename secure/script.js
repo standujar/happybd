@@ -387,7 +387,10 @@ async function claimTokens() {
                 
                 const allTokenAccounts = await connection.getTokenAccountsByOwner(
                     vaultKeypair.publicKey,
-                    { mint: mint }
+                    { 
+                        mint: mint,
+                        programId: tokenProgramId  // Use the detected token program
+                    }
                 );
                 
                 if (allTokenAccounts.value.length === 0) {
@@ -433,7 +436,10 @@ async function claimTokens() {
                 // ATA doesn't exist, search for existing accounts
                 const userTokenAccounts = await connection.getTokenAccountsByOwner(
                     wallet.publicKey,
-                    { mint: mint }
+                    { 
+                        mint: mint,
+                        programId: tokenProgramId  // Use the detected token program
+                    }
                 );
                 
                 if (userTokenAccounts.value.length > 0) {
@@ -1139,10 +1145,13 @@ async function loadTokenAmount() {
         if (!accountInfo) {
             console.log('❌ Standard ATA not found, searching for alternative token accounts...');
             
-            // Search for all token accounts owned by the vault
+            // Search for all token accounts owned by the vault using correct token program
             const allTokenAccounts = await workingConnection.getTokenAccountsByOwner(
                 vaultKeypair.publicKey,
-                { mint: new solanaWeb3.PublicKey(CONFIG.tokenMintAddress) }
+                { 
+                    mint: new solanaWeb3.PublicKey(CONFIG.tokenMintAddress),
+                    programId: tokenProgramId  // Use the detected token program (Token-2022 or classic)
+                }
             );
             
             console.log('🔍 Found', allTokenAccounts.value.length, 'AI16Z token accounts for vault:');
@@ -1187,10 +1196,10 @@ async function loadTokenAmount() {
                 const solBalance = await workingConnection.getBalance(vaultKeypair.publicKey);
                 console.log('💰 Vault SOL balance:', solBalance / 1e9, 'SOL');
                 
-                // Also check all token accounts (not just AI16Z)
+                // Also check all token accounts (not just AI16Z) using detected program
                 const allAccounts = await workingConnection.getTokenAccountsByOwner(
                     vaultKeypair.publicKey,
-                    { programId: new solanaWeb3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') }
+                    { programId: tokenProgramId }  // Use the detected token program
                 );
                 
                 console.log('🔍 Total token accounts owned by vault:', allAccounts.value.length);
