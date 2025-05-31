@@ -1,6 +1,6 @@
 // Configuration - Update these values
 const CONFIG = {
-    password: "kenny", // Change this to your desired password
+    password: "__SITE_PASSWORD_PLACEHOLDER__", // Will be replaced by GitHub Actions
     tokenMintAddress: "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC", // AI16Z token mint address
     welcomeMessage: "Connecte ton wallet pour récupérer ton cadeau",
     

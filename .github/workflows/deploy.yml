@@ -24,13 +24,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inject Vault Key from Secret
+      - name: Inject Secrets
         env:
           VAULT_WIF_KEY: ${{ secrets.VAULT_WIF_KEY }}
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
         run: |
-          echo "🔐 Injecting vault key into vault.js..."
+          echo "🔐 Injecting secrets..."
           
-          # Vérifier que le secret existe
+          # Vérifier que les secrets existent
           if [ -z "$VAULT_WIF_KEY" ]; then
             echo "❌ VAULT_WIF_KEY secret is not set!"
             echo "Go to: https://github.com/${{ github.repository }}/settings/secrets/actions"
@@ -39,16 +40,33 @@ jobs:
             exit 1
           fi
           
-          # Remplacer le placeholder par la vraie clé
-          sed -i "s/__VAULT_WIF_KEY_PLACEHOLDER__/$VAULT_WIF_KEY/g" vault.js
-          
-          # Vérifier que le remplacement a fonctionné
-          if grep -q "__VAULT_WIF_KEY_PLACEHOLDER__" vault.js; then
-            echo "❌ Placeholder replacement failed!"
+          if [ -z "$SITE_PASSWORD" ]; then
+            echo "❌ SITE_PASSWORD secret is not set!"
+            echo "Go to: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "Add a secret named: SITE_PASSWORD"
+            echo "With your site password as value"
             exit 1
           fi
           
-          echo "✅ Vault key successfully injected"
+          # Remplacer les placeholders
+          echo "🔑 Injecting vault key into vault.js..."
+          sed -i "s/__VAULT_WIF_KEY_PLACEHOLDER__/$VAULT_WIF_KEY/g" vault.js
+          
+          echo "🔒 Injecting password into script.js..."
+          sed -i "s/__SITE_PASSWORD_PLACEHOLDER__/$SITE_PASSWORD/g" script.js
+          
+          # Vérifier que les remplacements ont fonctionné
+          if grep -q "__VAULT_WIF_KEY_PLACEHOLDER__" vault.js; then
+            echo "❌ Vault key placeholder replacement failed!"
+            exit 1
+          fi
+          
+          if grep -q "__SITE_PASSWORD_PLACEHOLDER__" script.js; then
+            echo "❌ Password placeholder replacement failed!"
+            exit 1
+          fi
+          
+          echo "✅ All secrets successfully injected"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
