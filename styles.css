@@ -50,7 +50,7 @@ body {
 
 .header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 40px;
 }
 
 .logo {
@@ -565,5 +565,160 @@ button:hover:not(:disabled)::before {
     
     .header {
         margin-bottom: 16px;
+    }
+}
+
+/* === LAZY LOADING SECURE STYLES === */
+
+/* Password Section */
+.password-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.password-btn {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: white;
+    font-weight: 600;
+    padding: 16px 32px;
+    border-radius: 16px;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.password-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.4);
+}
+
+.password-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading Section */
+.loading-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.loading-section p {
+    font-size: 1.2rem;
+    color: #9a3412;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Big Loader Animation */
+.big-loader {
+    width: 60px;
+    height: 60px;
+    border: 6px solid rgba(249, 115, 22, 0.2);
+    border-top: 6px solid #f97316;
+    border-radius: 50%;
+    animation: bigSpin 1s linear infinite;
+}
+
+@keyframes bigSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error Message Styles */
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.error-message.show {
+    animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Enhanced Input Styling */
+#password-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 16px 20px;
+    font-size: 1.1rem;
+    border: 2px solid rgba(249, 115, 22, 0.2);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #9a3412;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+#password-input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+    outline: none;
+    background: rgba(255, 255, 255, 1);
+}
+
+#password-input::placeholder {
+    color: rgba(154, 52, 18, 0.5);
+    font-weight: 400;
+}
+
+/* Responsive Adjustments for Lazy Loading */
+@media (max-width: 480px) {
+    .password-section {
+        padding: 15px 0;
+        gap: 15px;
+    }
+    
+    .password-btn {
+        min-width: 160px;
+        padding: 14px 24px;
+        font-size: 1rem;
+    }
+    
+    #password-input {
+        max-width: 250px;
+        padding: 14px 16px;
+        font-size: 1rem;
+    }
+    
+    .loading-section {
+        padding: 30px 15px;
+        gap: 25px;
+    }
+    
+    .loading-section p {
+        font-size: 1.1rem;
+    }
+    
+    .big-loader {
+        width: 50px;
+        height: 50px;
+        border-width: 5px;
     }
 } 

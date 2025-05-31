@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages with Secret Injection
+name: Deploy to GitHub Pages with Secure Lazy Loading
 
 on:
   push:
@@ -24,12 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inject Secrets
+      - name: Inject Secrets with Secure Lazy Loading
         env:
           VAULT_WIF_KEY: ${{ secrets.VAULT_WIF_KEY }}
           SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
         run: |
-          echo "🔐 Injecting secrets..."
+          echo "🔐 Injecting secrets with secure lazy loading..."
           
           # Vérifier que les secrets existent
           if [ -z "$VAULT_WIF_KEY" ]; then
@@ -48,25 +48,39 @@ jobs:
             exit 1
           fi
           
-          # Remplacer les placeholders
-          echo "🔑 Injecting vault key into vault.js..."
-          sed -i "s/__VAULT_WIF_KEY_PLACEHOLDER__/$VAULT_WIF_KEY/g" vault.js
+          # 1. Injecter la clé vault dans secure/vault.js
+          echo "🔑 Injecting vault key into secure/vault.js..."
+          sed -i "s/__VAULT_WIF_KEY_PLACEHOLDER__/$VAULT_WIF_KEY/g" secure/vault.js
           
-          echo "🔒 Injecting password into script.js..."
-          sed -i "s/__SITE_PASSWORD_PLACEHOLDER__/$SITE_PASSWORD/g" script.js
+          # 2. Injecter le password dans secure/script.js  
+          echo "🔒 Injecting password into secure/script.js..."
+          sed -i "s/__SITE_PASSWORD_PLACEHOLDER__/$SITE_PASSWORD/g" secure/script.js
+          
+          # 3. Générer le hash SHA-256 du password pour password-check.js
+          echo "🔐 Generating password hash for password-check.js..."
+          PASSWORD_HASH=$(echo -n "$SITE_PASSWORD" | sha256sum | cut -d' ' -f1)
+          echo "Password hash: $PASSWORD_HASH"
+          
+          # Remplacer le hash par défaut dans password-check.js
+          sed -i "s/passwordHash: \"9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72\"/passwordHash: \"$PASSWORD_HASH\"/g" password-check.js
           
           # Vérifier que les remplacements ont fonctionné
-          if grep -q "__VAULT_WIF_KEY_PLACEHOLDER__" vault.js; then
+          if grep -q "__VAULT_WIF_KEY_PLACEHOLDER__" secure/vault.js; then
             echo "❌ Vault key placeholder replacement failed!"
             exit 1
           fi
           
-          if grep -q "__SITE_PASSWORD_PLACEHOLDER__" script.js; then
+          if grep -q "__SITE_PASSWORD_PLACEHOLDER__" secure/script.js; then
             echo "❌ Password placeholder replacement failed!"
             exit 1
           fi
           
-          echo "✅ All secrets successfully injected"
+          if grep -q "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72" password-check.js; then
+            echo "❌ Password hash replacement failed!"
+            exit 1
+          fi
+          
+          echo "✅ All secrets successfully injected with secure lazy loading"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
