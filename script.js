@@ -1,8 +1,8 @@
 // Configuration - Update these values
 const CONFIG = {
-    password: "ai16z-birthday", // Change this to your desired password
+    password: "kenny", // Change this to your desired password
     tokenMintAddress: "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC", // AI16Z token mint address
-    welcomeMessage: "Félicitations ! Tu as un cadeau AI16Z exclusif qui t'attend.",
+    welcomeMessage: "Connecte ton wallet pour récupérer ton cadeau",
     
     // DEBUG MODE - set to false for production
     debug: false, // Change to true to see detailed logs
@@ -142,6 +142,11 @@ async function getWorkingConnection() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {
+    // Check if already claimed FIRST - before any other initialization
+    if (checkIfAlreadyClaimed()) {
+        return; // Stop initialization if already claimed
+    }
+    
     try {
         connection = await createConnection();
     } catch (error) {
@@ -149,7 +154,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         connection = new solanaWeb3.Connection(CONFIG.rpcUrls[0], 'confirmed');
     }
     
-    checkIfAlreadyClaimed();
     setupEventListeners();
     
     // SPL Token implementation is now built-in
@@ -223,7 +227,8 @@ async function connectWallet() {
             await new Promise(resolve => setTimeout(resolve, 1000));
             
             if (typeof window.solana === 'undefined') {
-                throw new Error('No Solana wallet detected. Please install Phantom, Solflare, or another Solana wallet and refresh the page.');
+                showPhantomDownloadPrompt();
+                throw new Error('Aucun wallet Solana détecté. Veuillez installer Phantom Wallet.');
             }
         }
 
@@ -769,7 +774,7 @@ function setClaimLoading(isLoading) {
         loader.classList.remove('hidden');
     } else {
         button.disabled = false;
-        text.textContent = 'Récupérer mon Cadeau AI16Z';
+        text.textContent = 'Récupérer mon cadeau';
         loader.classList.add('hidden');
     }
 }
@@ -793,26 +798,279 @@ function showError(message) {
     errorDiv.classList.remove('hidden');
 }
 
+function showPhantomDownloadPrompt() {
+    // Créer une popup pour télécharger Phantom
+    const popup = document.createElement('div');
+    popup.className = 'phantom-popup';
+    popup.innerHTML = `
+        <div class="phantom-popup-content">
+            <div class="phantom-logo">
+                <div class="phantom-icon">🧡</div>
+            </div>
+            <h3>Wallet requis</h3>
+            <p>Pour récupérer ton cadeau, connecte ton Phantom Wallet !</p>
+            <div class="phantom-buttons">
+                <a href="https://phantom.app/download" target="_blank" class="phantom-download-btn">
+                    🚀 Télécharger Phantom
+                </a>
+                <button onclick="closePhantomPopup()" class="phantom-close-btn">
+                    Plus tard
+                </button>
+            </div>
+            <div class="phantom-platforms">
+                <small>Disponible sur iOS, Android, Chrome, Firefox, Brave et Edge</small>
+            </div>
+        </div>
+        <div class="phantom-overlay" onclick="closePhantomPopup()"></div>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    // Ajouter les styles
+    if (!document.getElementById('phantom-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'phantom-styles';
+        styles.textContent = `
+            .phantom-popup {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .phantom-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+            }
+            
+            .phantom-popup-content {
+                background: white;
+                border-radius: 20px;
+                padding: 30px;
+                text-align: center;
+                max-width: 400px;
+                margin: 20px;
+                position: relative;
+                z-index: 10001;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                border: 3px solid #f97316;
+            }
+            
+            .phantom-logo {
+                margin-bottom: 20px;
+            }
+            
+            .phantom-icon {
+                font-size: 60px;
+                background: linear-gradient(135deg, #f97316, #ea580c);
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto;
+                box-shadow: 0 8px 16px rgba(249, 115, 22, 0.3);
+            }
+            
+            .phantom-popup-content h3 {
+                color: #ea580c;
+                margin: 20px 0 10px 0;
+                font-size: 24px;
+            }
+            
+            .phantom-popup-content p {
+                color: #666;
+                margin-bottom: 25px;
+                line-height: 1.5;
+            }
+            
+            .phantom-buttons {
+                display: flex;
+                gap: 15px;
+                margin-bottom: 20px;
+                flex-direction: column;
+            }
+            
+            .phantom-download-btn {
+                background: linear-gradient(135deg, #f97316, #ea580c);
+                color: white;
+                text-decoration: none;
+                padding: 15px 25px;
+                border-radius: 12px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+            }
+            
+            .phantom-download-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4);
+            }
+            
+            .phantom-close-btn {
+                background: #f3f4f6;
+                color: #666;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .phantom-close-btn:hover {
+                background: #e5e7eb;
+            }
+            
+            .phantom-platforms {
+                color: #9ca3af;
+                font-size: 12px;
+            }
+            
+            @media (max-width: 480px) {
+                .phantom-popup-content {
+                    margin: 10px;
+                    padding: 20px;
+                }
+                
+                .phantom-buttons {
+                    flex-direction: column;
+                }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+}
+
+function closePhantomPopup() {
+    const popup = document.querySelector('.phantom-popup');
+    if (popup) {
+        popup.remove();
+    }
+}
+
 function hideMessages() {
     document.getElementById('success-message').classList.add('hidden');
     document.getElementById('error-message').classList.add('hidden');
 }
 
+// Cookie management functions
+function setCookie(name, value, days) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
 function checkIfAlreadyClaimed() {
-    // TEMPORAIRE: Reset automatique pour les tests
-    localStorage.removeItem('ai16z-claimed');
-    console.log('🔄 Claim status reset for testing');
-    
-    const claimed = localStorage.getItem('ai16z-claimed');
+    // Check cookie instead of localStorage
+    const claimed = getCookie('kenny-ai16z-claimed');
     if (claimed === 'true') {
         hasClaimed = true;
-        showScreen('claimed-screen');
+        showClaimedMessage();
+        return true;
     }
+    return false;
 }
 
 function markAsClaimed() {
     hasClaimed = true;
-    localStorage.setItem('ai16z-claimed', 'true');
+    // Set cookie for 365 days (1 year)
+    setCookie('kenny-ai16z-claimed', 'true', 365);
+    console.log('🍪 Claim status saved in cookie for 1 year');
+}
+
+function showClaimedMessage() {
+    // Replace entire page content with "already claimed" message
+    document.body.innerHTML = `
+        <div style="
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            text-align: center;
+            padding: 20px;
+        ">
+            <div style="
+                background: white;
+                border-radius: 20px;
+                padding: 40px;
+                box-shadow: 0 20px 40px rgba(249, 115, 22, 0.1);
+                border: 3px solid #f97316;
+                max-width: 500px;
+                width: 100%;
+            ">
+                <div style="
+                    width: 80px;
+                    height: 80px;
+                    background: linear-gradient(135deg, #f97316, #ea580c);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 20px auto;
+                    font-size: 40px;
+                ">
+                    ✅
+                </div>
+                <h1 style="
+                    color: #ea580c;
+                    margin: 0 0 20px 0;
+                    font-size: 28px;
+                    font-weight: 700;
+                ">
+                    Cadeau déjà récupéré !
+                </h1>
+                <p style="
+                    color: #9a3412;
+                    margin: 0 0 30px 0;
+                    font-size: 18px;
+                    line-height: 1.5;
+                ">
+                    Tu as déjà récupéré ton cadeau AI16Z Kenny. <br>
+                    Chaque wallet ne peut récupérer qu'un seul cadeau.
+                </p>
+                <div style="
+                    background: #fed7aa;
+                    border-radius: 12px;
+                    padding: 20px;
+                    border-left: 4px solid #f97316;
+                ">
+                    <p style="
+                        color: #9a3412;
+                        margin: 0;
+                        font-size: 14px;
+                        font-weight: 500;
+                    ">
+                        💡 Si tu penses qu'il s'agit d'une erreur, contacte le support.
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // SPL Token functions are now implemented inline in HTML
